@@ -368,22 +368,46 @@
   function utilTag(u) { return u >= 80 ? "high" : u >= 50 ? "med" : "low"; }
 
   /* ---------------- 1. Dashboard ---------------- */
-  async function loadDashboard() {
+  async function loadDashboard(reqDate, reqHour) {
     let d;
+    const dateVal = reqDate !== undefined ? reqDate : ($("#dashDate")?.value || "");
+    const hourVal = reqHour !== undefined ? reqHour : ($("#dashHour")?.value || "");
+
+    const params = [];
+    if (dateVal) params.push(`date=${encodeURIComponent(dateVal)}`);
+    if (hourVal !== "" && hourVal !== null && hourVal !== undefined) params.push(`hour=${encodeURIComponent(hourVal)}`);
+    const qStr = params.length ? `?${params.join("&")}` : "";
+
     try {
-      d = await api("/dashboard");
+      d = await api(`/dashboard${qStr}`);
     } catch (e) {
       $("#kpiRow").innerHTML = `<div class="kpi"><div class="sub">${esc(e.message)}</div></div>`;
       return;
     }
+
+    if ($("#dashDate")) {
+      $("#dashDate").value = d.date;
+    }
+    if ($("#dashHour")) {
+      $("#dashHour").value = String(d.hour);
+    }
+    if ($("#dashSnapshotNotice")) {
+      const ampm = d.hour >= 12 ? (d.hour === 12 ? "12:00 PM (Noon)" : `${d.hour - 12}:00 PM`) : `${d.hour}:00 AM`;
+      $("#dashSnapshotNotice").innerHTML = `Active: <strong style="color:#1d4ed8;">${d.date} at ${ampm}</strong>`;
+    }
+    if ($("#buildBarHint")) {
+      const ampm = d.hour >= 12 ? (d.hour === 12 ? "12:00 PM" : `${d.hour - 12}:00 PM`) : `${d.hour}:00 AM`;
+      $("#buildBarHint").textContent = `Snapshot at ${ampm} (${String(d.hour).padStart(2, "0")}:00)`;
+    }
+
     const k = d.kpis;
     const kpis = [
-      { label: "Recorded Occupancy", value: k.current_occupancy, sub: `${d.latest_data_date} @${d.hour}:00` },
-      { label: "Predicted Occupancy", value: k.predicted_occupancy, sub: "Campus Total" },
+      { label: "Recorded Occupancy", value: k.current_occupancy, sub: `${d.date} @${String(d.hour).padStart(2, "0")}:00` },
+      { label: "Predicted Occupancy", value: k.predicted_occupancy, sub: `ML Forecast @${String(d.hour).padStart(2, "0")}:00` },
       { label: "Total Campus Capacity", value: k.capacity, sub: "Available Seats" },
-      { label: "Campus Utilization", value: k.utilization + "%", sub: "Predicted ratio" },
+      { label: "Campus Utilization", value: k.utilization + "%", sub: "Ratio at this hour" },
       { label: "Overcapacity Alerts", value: k.overcapacity_areas, sub: "Buildings ≥ 80%" },
-      { label: "Free Rooms", value: k.available_rooms, sub: "≥ 15 free seats" },
+      { label: "Free Rooms", value: k.available_rooms, sub: `≥ 15 free seats @${String(d.hour).padStart(2, "0")}:00` },
       { label: "Peak Forecast Hour", value: k.peak_hour + ":00", sub: `${k.peak_value} expected` },
     ];
     if (d.latest_data_date) {
@@ -1084,6 +1108,7 @@
     const hourOpts = HOURS.map(h => `<option value="${h}" ${h === 12 ? "selected" : ""}>${String(h).padStart(2, "0")}:00</option>`).join("");
     const all24Opts = Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === 12 ? "selected" : ""}>${String(h).padStart(2, "0")}:00 ${h < 8 || h > 20 ? "(closed)" : ""}</option>`).join("");
 
+    // Fill hours select dropdowns for explorer & optimizer
     $("#mapHour").innerHTML = hourOpts;
     $("#optHour").innerHTML = all24Opts;
 
@@ -1093,6 +1118,29 @@
       const el = $(`#${id}`);
       if (el) { el.value = def; }
     });
+
+    // Dashboard Interactive Controls
+    if ($("#dashRefresh")) {
+      $("#dashRefresh").addEventListener("click", () => {
+        loadDashboard($("#dashDate")?.value, $("#dashHour")?.value);
+      });
+    }
+    if ($("#dashDate")) {
+      $("#dashDate").addEventListener("change", () => {
+        loadDashboard($("#dashDate").value, $("#dashHour")?.value);
+      });
+    }
+    if ($("#dashHour")) {
+      $("#dashHour").addEventListener("change", () => {
+        loadDashboard($("#dashDate")?.value, $("#dashHour").value);
+      });
+    }
+    if ($("#dashReset")) {
+      $("#dashReset").addEventListener("click", () => {
+        if ($("#dashHour")) $("#dashHour").value = "12";
+        loadDashboard(null, 12);
+      });
+    }
 
     await initAuth();
     try { await loadBuildings(); } catch (e) { /* offline */ }
