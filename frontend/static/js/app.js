@@ -401,8 +401,15 @@
     }
 
     const k = d.kpis;
+    const hasRecorded = k.current_occupancy > 0;
     const kpis = [
-      { label: "Recorded Occupancy", value: k.current_occupancy, sub: `${d.date} @${String(d.hour).padStart(2, "0")}:00` },
+      { 
+        label: "Recorded Occupancy", 
+        value: k.current_occupancy, 
+        sub: hasRecorded 
+          ? `${d.date} @${String(d.hour).padStart(2, "0")}:00` 
+          : "No logs for this date (Historical ends 2026-09-21)" 
+      },
       { label: "Predicted Occupancy", value: k.predicted_occupancy, sub: `ML Forecast @${String(d.hour).padStart(2, "0")}:00` },
       { label: "Total Campus Capacity", value: k.capacity, sub: "Available Seats" },
       { label: "Campus Utilization", value: k.utilization + "%", sub: "Ratio at this hour" },
@@ -411,7 +418,7 @@
       { label: "Peak Forecast Hour", value: k.peak_hour + ":00", sub: `${k.peak_value} expected` },
     ];
     if (d.latest_data_date) {
-      ["anDate", "capDate"].forEach(id => {
+      ["dashDate", "anDate", "capDate"].forEach(id => {
         const el = $(`#${id}`);
         if (el && (!el.value || el.value === todayStr())) {
           el.value = d.latest_data_date;

@@ -1,4 +1,4 @@
-﻿"""Aggregated dashboard endpoint (KPIs + chart series)."""
+"""Aggregated dashboard endpoint (KPIs + chart series)."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
@@ -27,7 +27,15 @@ def _actual_for(db: Session, dt: str, hour: int) -> dict:
 @router.get("/dashboard")
 def dashboard(dt: str | None = Query(None, alias="date"), hour: int | None = Query(None),
               db: Session = Depends(get_db)):
-    latest = db.query(func.max(Occupancy.date)).scalar()
+    # Find latest date that has campus-wide historical records (at least 20 rooms)
+    latest_full = (
+        db.query(Occupancy.date)
+        .group_by(Occupancy.date)
+        .having(func.count(Occupancy.id) >= 20)
+        .order_by(Occupancy.date.desc())
+        .first()
+    )
+    latest = latest_full[0] if latest_full else db.query(func.max(Occupancy.date)).scalar()
     if not latest:
         return {"error": "No occupancy data. Run: py -3.11 -m backend.seed"}
 
