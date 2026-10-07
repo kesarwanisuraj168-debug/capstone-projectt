@@ -839,13 +839,14 @@
       $("#datasetSummaryBox").innerHTML = `<p class="err">${esc(e.message)}</p>`;
     }
 
-    // Populate simulation room dropdown
-    if (buildings.length) {
-      const allRooms = [];
-      buildings.forEach(b => {
-        allRooms.push(`${b.code}-101`, `${b.code}-102`, `${b.code}-Lab1`);
-      });
-      $("#simRoomSelect").innerHTML = Array.from(new Set(allRooms)).map(r => `<option value="${r}">${r}</option>`).join("");
+    // Populate simulation room dropdown with real database rooms
+    try {
+      const realRooms = await api("/rooms");
+      if (realRooms && realRooms.length) {
+        $("#simRoomSelect").innerHTML = realRooms.map(r => `<option value="${esc(r.code)}">${esc(r.code)} (${esc(r.building_name)} · cap: ${r.capacity})</option>`).join("");
+      }
+    } catch (e) {
+      console.warn("Could not fetch real rooms list:", e);
     }
 
     // Load preview table

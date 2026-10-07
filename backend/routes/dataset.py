@@ -384,7 +384,14 @@ def simulate_live_sensor_stream(
     Demonstration / simulation endpoint for IoT sensor or turnstile integration.
     Clearly labeled as simulated demonstration data.
     """
-    room = db.query(Room).filter(Room.code == room_code).first()
+    clean_code = room_code.strip()
+    room = db.query(Room).filter(func.lower(Room.code) == clean_code.lower()).first()
+    if not room:
+        # Also try matching with a hyphen if missing (e.g. A101 -> A-101)
+        m = re.match(r"^([a-zA-Z]+)(\d+.*)$", clean_code)
+        if m:
+            hyphen_code = f"{m.group(1)}-{m.group(2)}".lower()
+            room = db.query(Room).filter(func.lower(Room.code) == hyphen_code).first()
     if not room:
         raise HTTPException(status_code=404, detail=f"Room '{room_code}' not found.")
 
