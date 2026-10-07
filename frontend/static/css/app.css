@@ -465,6 +465,7 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 .chip-admin {
   background: #eff6ff;
   border-color: #bfdbfe;
+  width: 100%;
 }
 .chip-admin:hover {
   background: #dbeafe;
@@ -472,33 +473,13 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
   transform: translateY(-1px);
 }
 .chip-admin .chip-role {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #1d4ed8;
 }
 .chip-admin .chip-creds {
-  font-size: 10px;
+  font-size: 11px;
   color: #3b82f6;
-  font-family: monospace;
-  margin-top: 2px;
-}
-.chip-user {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-}
-.chip-user:hover {
-  background: #d1fae5;
-  border-color: #10b981;
-  transform: translateY(-1px);
-}
-.chip-user .chip-role {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #047857;
-}
-.chip-user .chip-creds {
-  font-size: 10px;
-  color: #10b981;
   font-family: monospace;
   margin-top: 2px;
 }

@@ -1,41 +1,44 @@
-﻿"""Authentication routes: register, login, me."""
+"""Authentication routes: admin login, admin me, disabled public register."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..deps import require_user
+from ..deps import require_admin
 from ..models import User
-from ..schemas import LoginRequest, LoginResponse, RegisterRequest, UserOut
-from ..security import create_token, hash_password, verify_password
+from ..schemas import LoginRequest, LoginResponse, UserOut
+from ..security import create_token, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=LoginResponse)
-def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.username == body.username).first():
-        raise HTTPException(status_code=409, detail="Username already taken.")
-    user = User(username=body.username, full_name=body.full_name,
-                password_hash=hash_password(body.password), role="user")
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    token = create_token(user.id, user.username, user.role)
-    return LoginResponse(token=token, user=UserOut.model_validate(user))
+@router.post("/register")
+def register():
+    """Public registration is disabled in the admin-only system."""
+    raise HTTPException(
+        status_code=403,
+        detail="Public user registration is disabled. Administrator access only."
+    )
 
 
 @router.post("/login", response_model=LoginResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
+    """Authenticate authorized administrator accounts only."""
     user = db.query(User).filter(User.username == body.username).first()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid username or password.")
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. Administrator privileges required."
+        )
     token = create_token(user.id, user.username, user.role)
     return LoginResponse(token=token, user=UserOut.model_validate(user))
 
 
 @router.get("/me", response_model=UserOut)
-def me(user: User = Depends(require_user)):
+def me(user: User = Depends(require_admin)):
+    """Return currently authenticated administrator profile."""
     return user
 

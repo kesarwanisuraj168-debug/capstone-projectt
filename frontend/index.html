@@ -43,8 +43,8 @@
     <header class="topbar">
       <div id="pageTitle"><h2>Campus Overview Dashboard</h2></div>
       <div class="auth-zone">
-        <span id="userBadge" class="badge synthetic">Guest / Demo Mode</span>
-        <button class="btn btn-sm" id="authBtn">Login / Register</button>
+        <span id="userBadge" class="badge synthetic">Administrator Access</span>
+        <button class="btn btn-sm" id="authBtn">Admin Login</button>
       </div>
     </header>
 
@@ -443,11 +443,10 @@
       </div>
       <div class="grid2">
         <div class="card">
-          <h3>Role &amp; Privilege Management</h3>
-          <p class="hint">Current Active Demo Accounts:</p>
+          <h3>Authentication &amp; Access Control</h3>
+          <p class="hint">System Access Policy: <strong>Admin-Only</strong></p>
           <ul>
-            <li><strong>Administrator:</strong> <code>admin</code> / <code>admin123</code> (Full Retrain &amp; Management Rights)</li>
-            <li><strong>Standard User:</strong> <code>user</code> / <code>user123</code> (Read-only &amp; Optimization Requests)</li>
+            <li><strong>Administrator Account:</strong> <code>admin</code> / <code>admin123</code> (Full System Access &amp; Pipeline Control)</li>
           </ul>
         </div>
         <div class="card">
@@ -460,7 +459,7 @@
   </main>
 </div>
 
-<!-- FULL-SCREEN LOGIN / REGISTRATION GATEWAY -->
+<!-- FULL-SCREEN LOGIN GATEWAY -->
 <div id="loginScreen" class="login-wrapper">
   <!-- Dynamic ambient glowing orbs in backdrop -->
   <div class="login-bg-glow glow-1"></div>
@@ -473,30 +472,21 @@
         <span class="brand-emoji">🏛️</span>
       </div>
       <h2>CampusPulse</h2>
-      <p class="login-subtitle">Smart Campus Occupancy &amp; Optimization System</p>
+      <p class="login-subtitle">Administrator Portal · Smart Campus Forecasting</p>
       <div class="header-pills">
         <span class="pill-tech">AI Spatiotemporal Engine</span>
         <span class="pill-tech">PuLP MILP Solver</span>
+        <span class="pill-tech" style="background: rgba(16, 185, 129, 0.15); color: #059669; border-color: rgba(16, 185, 129, 0.3);">Admin-Only Access</span>
       </div>
-    </div>
-
-    <!-- Mode Tabs -->
-    <div class="login-tabs">
-      <button type="button" class="login-tab active" id="tabLogin">Sign In</button>
-      <button type="button" class="login-tab" id="tabRegister">Create Account</button>
     </div>
 
     <!-- Quick 1-Click Demo Credentials Box -->
     <div class="demo-creds-box">
-      <div class="demo-box-label">⚡ 1-Click Demo Credentials</div>
+      <div class="demo-box-label">⚡ Administrator Credentials</div>
       <div class="demo-buttons-row">
-        <button type="button" class="demo-chip chip-admin" id="fillAdmin">
-          <span class="chip-role">🔑 Admin Access</span>
+        <button type="button" class="demo-chip chip-admin" id="fillAdmin" style="width: 100%;">
+          <span class="chip-role">🔑 Auto-Fill Admin Credentials</span>
           <span class="chip-creds">admin / admin123</span>
-        </button>
-        <button type="button" class="demo-chip chip-user" id="fillUser">
-          <span class="chip-role">👤 Student Access</span>
-          <span class="chip-creds">user / user123</span>
         </button>
       </div>
     </div>
@@ -504,10 +494,10 @@
     <!-- Login Form -->
     <form id="loginForm" class="auth-form">
       <div class="form-group">
-        <label for="loginUser">Username</label>
+        <label for="loginUser">Administrator Username</label>
         <div class="input-with-icon">
           <span class="input-icon">👤</span>
-          <input type="text" id="loginUser" required placeholder="admin or user" autocomplete="username">
+          <input type="text" id="loginUser" required placeholder="admin" autocomplete="username">
         </div>
       </div>
       <div class="form-group">
@@ -518,51 +508,21 @@
         </div>
       </div>
       <button type="submit" class="btn-glow-primary" id="loginSubmitBtn">
-        <span>Sign In to CampusPulse</span>
+        <span>Sign In to Admin Dashboard</span>
         <span class="btn-arrow">→</span>
       </button>
       <div id="loginMsg" class="auth-feedback-msg"></div>
     </form>
 
-    <!-- Register Form -->
-    <form id="regForm" class="auth-form hidden">
-      <div class="form-group">
-        <label for="regUser">Choose Username</label>
-        <div class="input-with-icon">
-          <span class="input-icon">👤</span>
-          <input type="text" id="regUser" required placeholder="At least 3 characters" autocomplete="username">
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="regName">Full Name</label>
-        <div class="input-with-icon">
-          <span class="input-icon">🏷️</span>
-          <input type="text" id="regName" placeholder="Your full name (optional)">
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="regPass">Set Password</label>
-        <div class="input-with-icon">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="regPass" required placeholder="At least 4 characters" autocomplete="new-password">
-        </div>
-      </div>
-      <button type="submit" class="btn-glow-primary" id="regSubmitBtn">
-        <span>Create Account &amp; Sign In</span>
-        <span class="btn-arrow">→</span>
-      </button>
-      <div id="regMsg" class="auth-feedback-msg"></div>
-    </form>
-
     <div class="login-footer">
       <div class="security-badge">
         <span class="sec-dot"></span>
-        <span>Secure 256-Bit Authenticated FastAPI Session</span>
+        <span>Secure 256-Bit Authenticated FastAPI Session · Administrator Portal</span>
       </div>
     </div>
   </div>
 </div>
 
-<script src="static/js/app.js?v=20261004-v8-datefix"></script>
+<script src="static/js/app.js?v=20261007-admin-only"></script>
 </body>
 </html>

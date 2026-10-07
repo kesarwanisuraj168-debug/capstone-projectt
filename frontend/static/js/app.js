@@ -98,6 +98,9 @@
     if (token) {
       try {
         currentUser = await api("/auth/me");
+        if (!currentUser || currentUser.role !== "admin") {
+          throw new Error("Administrator access required.");
+        }
         showApp();
         try { await loadDashboard(); } catch (e) { /* ignore */ }
       } catch (e) {
@@ -114,10 +117,10 @@
   function renderAuthBadge() {
     const badge = $("#userBadge");
     const btn = $("#authBtn");
-    if (currentUser) {
+    if (currentUser && currentUser.role === "admin") {
       if (badge) {
-        badge.textContent = `👤 ${currentUser.username} (${currentUser.role === "admin" ? "Administrator" : "Student/User"})`;
-        badge.className = currentUser.role === "admin" ? "badge measured" : "badge imported";
+        badge.textContent = `👤 ${currentUser.username} (Administrator)`;
+        badge.className = "badge measured";
       }
       if (btn) {
         btn.textContent = "Logout";
@@ -130,17 +133,17 @@
       }
     } else {
       if (badge) {
-        badge.textContent = "Authentication Required";
+        badge.textContent = "Administrator Access Only";
         badge.className = "badge synthetic";
       }
       if (btn) {
-        btn.textContent = "Sign In";
+        btn.textContent = "Admin Login";
         btn.onclick = () => showLoginScreen();
       }
     }
   }
 
-  // Unified login executor
+  // Admin login executor
   async function doLogin(username, password) {
     const msg = $("#loginMsg");
     const submitBtn = $("#loginSubmitBtn");
@@ -155,6 +158,9 @@
         method: "POST",
         body: { username: (username || "").trim(), password: password || "" }
       });
+      if (res.user.role !== "admin") {
+        throw new Error("Access denied. Administrator privileges required.");
+      }
       token = res.token;
       currentUser = res.user;
       localStorage.setItem("campus_token", token);
@@ -168,108 +174,34 @@
         console.warn("Post-login data refresh:", err);
       }
     } catch (err) {
-      if (msg) msg.textContent = err.message || "Invalid username or password. Please try again.";
+      if (msg) msg.textContent = err.message || "Invalid administrator credentials. Please try again.";
       showLoginScreen();
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `<span>Sign In to CampusPulse</span><span class="btn-arrow">→</span>`;
+        submitBtn.innerHTML = `<span>Sign In to Admin Dashboard</span><span class="btn-arrow">→</span>`;
       }
     }
   }
 
-  // Login / Register Tabs
-  const tabLogin = $("#tabLogin");
-  const tabRegister = $("#tabRegister");
-  const loginForm = $("#loginForm");
-  const regForm = $("#regForm");
-
-  if (tabLogin && tabRegister) {
-    tabLogin.addEventListener("click", () => {
-      tabLogin.classList.add("active");
-      tabRegister.classList.remove("active");
-      if (loginForm) loginForm.classList.remove("hidden");
-      if (regForm) regForm.classList.add("hidden");
-    });
-
-    tabRegister.addEventListener("click", () => {
-      tabRegister.classList.add("active");
-      tabLogin.classList.remove("active");
-      if (regForm) regForm.classList.remove("hidden");
-      if (loginForm) loginForm.classList.add("hidden");
-    });
-  }
-
-  // 1-Click Instant Demo Login
+  // Auto-Fill Instant Admin Login Helper
   const fillAdmin = $("#fillAdmin");
-  const fillUser = $("#fillUser");
   if (fillAdmin) {
     fillAdmin.addEventListener("click", () => {
       $("#loginUser").value = "admin";
       $("#loginPass").value = "admin123";
-      if (tabLogin && !tabLogin.classList.contains("active")) tabLogin.click();
       doLogin("admin", "admin123");
     });
   }
-  if (fillUser) {
-    fillUser.addEventListener("click", () => {
-      $("#loginUser").value = "user";
-      $("#loginPass").value = "user123";
-      if (tabLogin && !tabLogin.classList.contains("active")) tabLogin.click();
-      doLogin("user", "user123");
-    });
-  }
 
-  // Login Form Submission
+  // Admin Login Form Submission
+  const loginForm = $("#loginForm");
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const u = $("#loginUser").value;
       const p = $("#loginPass").value;
       doLogin(u, p);
-    });
-  }
-
-  // Register Form Submission
-  if (regForm) {
-    regForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const msg = $("#regMsg");
-      const submitBtn = $("#regSubmitBtn");
-      if (msg) msg.textContent = "";
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span>Registering Account…</span>`;
-      }
-
-      try {
-        const res = await api("/auth/register", {
-          method: "POST",
-          body: {
-            username: $("#regUser").value.trim(),
-            full_name: $("#regName").value.trim(),
-            password: $("#regPass").value
-          }
-        });
-        token = res.token;
-        currentUser = res.user;
-        localStorage.setItem("campus_token", token);
-        showApp();
-        try {
-          await loadBuildings();
-          await loadDashboard();
-        } catch (err) {
-          console.warn("Post-register data refresh:", err);
-        }
-      } catch (err) {
-        if (msg) msg.textContent = err.message || "Registration failed. Try another username.";
-        showLoginScreen();
-      } finally {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = `<span>Create Account &amp; Sign In</span><span class="btn-arrow">→</span>`;
-        }
-      }
     });
   }
 
