@@ -822,6 +822,19 @@
     } catch (e) { $("#predList").innerHTML = `<p class="err">${esc(e.message)}</p>`; }
   }
 
+  async function populateSimRoomDropdown() {
+    const sel = $("#simRoomSelect");
+    if (!sel) return;
+    try {
+      const realRooms = await api("/rooms");
+      if (realRooms && realRooms.length) {
+        sel.innerHTML = realRooms.map(r => `<option value="${esc(r.code)}">${esc(r.code)} (${esc(r.building_name)} · cap: ${r.capacity})</option>`).join("");
+      }
+    } catch (e) {
+      console.warn("Could not fetch real rooms list:", e);
+    }
+  }
+
   /* ---------------- 8. Dataset Management ---------------- */
   async function loadDatasetView() {
     try {
@@ -840,14 +853,7 @@
     }
 
     // Populate simulation room dropdown with real database rooms
-    try {
-      const realRooms = await api("/rooms");
-      if (realRooms && realRooms.length) {
-        $("#simRoomSelect").innerHTML = realRooms.map(r => `<option value="${esc(r.code)}">${esc(r.code)} (${esc(r.building_name)} · cap: ${r.capacity})</option>`).join("");
-      }
-    } catch (e) {
-      console.warn("Could not fetch real rooms list:", e);
-    }
+    await populateSimRoomDropdown();
 
     // Load preview table
     try {
@@ -1085,6 +1091,7 @@
     await initAuth();
     try { await loadBuildings(); } catch (e) { /* offline */ }
     try { await loadCourses(); } catch (e) { /* offline */ }
+    try { await populateSimRoomDropdown(); } catch (e) { /* offline */ }
 
     // Seed 2 default rows in optimizer table
     reqRow("CS301 - Data Structures", 35);
